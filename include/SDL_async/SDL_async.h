@@ -1,10 +1,29 @@
 #if !defined(SDL_ASYNC_INCLUDED_H_)
 #define SDL_ASYNC_INCLUDED_H_
 
+#include <stdlib.h>
+#include <SDL.h>
+
+/**
+ * Default ASYNC user event.
+ */
+#define SDL_ASYNC_RESULT 100
+
+
 /**
  * Task function type.
  */
-typedef void (*async_function_t)(void * /* baton */);
+typedef int (*async_function_t)(void * /* baton */);
+
+typedef struct
+{
+	// Task result
+	int result;
+	// Function to execute inside a thread
+	async_function_t fun;
+	// Additional data associated with task
+	void * baton;
+} async_data_t;
 
 /**
  * Initialize a thread pool. At the beggining the threading pool size is 0,
@@ -13,6 +32,7 @@ typedef void (*async_function_t)(void * /* baton */);
  *
  * Every thread in a pool starts in a "WAITING" state, but then when a task
  * comes it begins processing.
+ * @param event Event ID to be sent when task changes its state.
  */
 void Async_Init();
 
