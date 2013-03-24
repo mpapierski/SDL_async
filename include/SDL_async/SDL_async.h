@@ -9,21 +9,34 @@
  */
 #define SDL_ASYNC_RESULT 100
 
-
 /**
  * Task function type.
  */
 typedef int (*async_function_t)(void * /* baton */);
 
+/**
+ * Things associated with a single task.
+ */
 typedef struct
 {
-	// Task result
+	// Task exit code.
 	int result;
-	// Function to execute inside a thread
+	// Function to execute inside a thread.
 	async_function_t fun;
-	// Additional data associated with task
+	// Additional data associated with task.
 	void * baton;
 } async_data_t;
+
+/**
+ * Task queue
+ */
+typedef struct async_queue_t
+{
+	// Current element.
+	async_data_t * data;
+	// Next task in queue.
+	struct async_queue_t * next;
+} async_queue_t;
 
 /**
  * Initialize a thread pool. At the beggining the threading pool size is 0,

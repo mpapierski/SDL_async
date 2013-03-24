@@ -26,6 +26,7 @@ static int async_task_function(void * data)
 
 static void async_task_result(async_data_t * data)
 {
+	async_task_baton * baton = (async_task_baton*)data->baton;
 	if (data->result == 0)
 	{
 		printf("Success writing %d to a file asynchronously...\n",
@@ -33,11 +34,12 @@ static void async_task_result(async_data_t * data)
 	}
 	else
 	{
-		async_task_baton * baton = (async_task_baton*)data->baton;
 		printf("Error writing data %d to a file asynchronously... Result: %d\n",
 			baton->dummy,
 			data->result);
 	}
+	free(baton);
+	free(data);
 }
 
 int
@@ -51,13 +53,17 @@ main(int argc, char* argv[])
 	atexit(SDL_Quit);
 	Async_Init();
 	atexit(Async_Free);
+	// The main loop is running.
 	int running = 1;
-	SDL_Event event;
-	
 	// Post some tasks
-	async_task_baton * baton = (async_task_baton*)malloc(sizeof(async_task_baton));
-	baton->dummy = 1234;
-	Async_Queue_Work(&async_task_function, baton);
+	int i, done = 0;
+	for (i = 0; i < 10; i++)
+	{
+		async_task_baton * baton = (async_task_baton*)malloc(sizeof(async_task_baton));
+		baton->dummy = 1234 + i;
+		Async_Queue_Work(&async_task_function, baton);
+	}
+
 	while (running)
 	{
 		SDL_Event event;
@@ -66,19 +72,23 @@ main(int argc, char* argv[])
 		{
 		case SDL_QUIT:
 			puts("Quit");
+			running = 0;
 			break;
 		case SDL_USEREVENT:
 			switch (event.user.code)
 			{
 			case SDL_ASYNC_RESULT:
 				async_task_result(event.user.data1);
-				running = 0;
+				done++;
+				if (done == 10)
+				{
+					running = 0;	
+				}
 				break;
 			}
 			break;
 		}
 	}
 	puts("Bye.");
-	free(baton);
 	return 0;
 }
