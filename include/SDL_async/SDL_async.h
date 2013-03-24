@@ -45,9 +45,9 @@ typedef struct async_queue_t
  *
  * Every thread in a pool starts in a "WAITING" state, but then when a task
  * comes it begins processing.
- * @param event Event ID to be sent when task changes its state.
+ * @param size Pool size.
  */
-void Async_Init();
+void Async_Init(int size);
 
 /**
  * Stop all threads, wait for currently processing tasks and join threads.

@@ -51,7 +51,7 @@ main(int argc, char* argv[])
 		return 1;
 	}
 	atexit(SDL_Quit);
-	Async_Init();
+	Async_Init(4);
 	atexit(Async_Free);
 	// The main loop is running.
 	int running = 1;

@@ -7,13 +7,13 @@
  */
 static int G_async_event;
 /**
- * Thread pool
+ * Thread pool list.
  */
-static SDL_Thread * G_threads[10];
+static SDL_Thread ** G_threads;
 /**
- * Current thread pool index
+ * Current thread pool count.
  */
-static int G_thread_index;
+static int G_thread_count;
 /**
  * Task queue
  */
@@ -103,7 +103,7 @@ static int thread_func(void * data)
 	return 0;
 }
 
-void Async_Init()
+void Async_Init(int size)
 {
 	G_is_running = 1;
 	int i;
@@ -111,14 +111,15 @@ void Async_Init()
 	// Create conditional variable
 	G_queue_cond = SDL_CreateCond();
 	G_queue_guard = SDL_CreateMutex();
-	for (i = 0; i < 10; i++)
-	{
-		G_threads[i] = 0;
-	}
-	// Single thread
-	G_threads[0] = SDL_CreateThread(&thread_func, 0);
-	G_thread_index = 0;
+	// Empty queue
 	G_queue = 0;
+	// Create threads
+	G_thread_count = size;
+	G_threads = (SDL_Thread**)malloc(size * sizeof(SDL_Thread*));
+	for (i = 0; i < size; i++)
+	{
+		G_threads[i] = SDL_CreateThread(&thread_func, 0);
+	}
 }
 
 void Async_Free()
@@ -129,13 +130,14 @@ void Async_Free()
 	// Notify all threads
 	SDL_CondBroadcast(G_queue_cond);
 	// Wait for threads
-	for (i = 0; i < 10; i++)
+	for (i = 0; i < G_thread_count; i++)
 	{
 		if (G_threads[i])
 		{
 			SDL_WaitThread(G_threads[i], NULL);
 		}
 	}
+	free(G_threads);
 	SDL_DestroyCond(G_queue_cond);
 	SDL_DestroyMutex(G_queue_guard);
 }
