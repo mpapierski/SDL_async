@@ -2,11 +2,6 @@
 #include <assert.h>
 
 /**
- * Async event message ID.
- * @private
- */
-static int G_async_event;
-/**
  * Thread pool list.
  */
 static SDL_Thread ** G_threads;
@@ -48,7 +43,7 @@ static void Async_Queue_Put(async_data_t * data)
 	if (!next)
 	{
 		puts("Error adding new queue item");
-		// Error
+		SDL_UnlockMutex(G_queue_guard);
 		return;
 	}
 	next->next = head;
@@ -94,7 +89,7 @@ static int thread_func(void * data)
 		// Notify event loop
 		SDL_Event event;
 		event.type = SDL_USEREVENT;
-		event.user.code = G_async_event;
+		event.user.code = head->data->message;
 		event.user.data1 = head->data;
 		event.user.data2 = 0;
 		free(head);
@@ -107,7 +102,6 @@ void Async_Init(int size)
 {
 	G_is_running = 1;
 	int i;
-	G_async_event = SDL_ASYNC_RESULT;
 	// Create conditional variable
 	G_queue_cond = SDL_CreateCond();
 	G_queue_guard = SDL_CreateMutex();
@@ -142,9 +136,10 @@ void Async_Free()
 	SDL_DestroyMutex(G_queue_guard);
 }
 
-void Async_Queue_Work(async_function_t task, void * baton)
+void Async_Queue_Work(async_function_t task, int message, void * baton)
 {
 	async_data_t * task_data = (async_data_t*)malloc(sizeof(async_data_t));
+	task_data->message = message;
 	task_data->result = 0;
 	task_data->fun = task;
 	task_data->baton = baton;

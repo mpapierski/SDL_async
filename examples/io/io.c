@@ -30,7 +30,7 @@ static void async_task_result(async_data_t * data)
 	if (data->result == 0)
 	{
 		printf("Success writing %d to a file asynchronously...\n",
-			data->result);
+			baton->dummy);
 	}
 	else
 	{
@@ -61,7 +61,7 @@ main(int argc, char* argv[])
 	{
 		async_task_baton * baton = (async_task_baton*)malloc(sizeof(async_task_baton));
 		baton->dummy = 1234 + i;
-		Async_Queue_Work(&async_task_function, baton);
+		Async_Queue_Work(&async_task_function, 12345, baton);
 	}
 
 	while (running)
@@ -77,7 +77,7 @@ main(int argc, char* argv[])
 		case SDL_USEREVENT:
 			switch (event.user.code)
 			{
-			case SDL_ASYNC_RESULT:
+			case 12345:
 				async_task_result(event.user.data1);
 				done++;
 				if (done == 10)

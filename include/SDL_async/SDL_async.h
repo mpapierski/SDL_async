@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <SDL.h>
 
-/**
- * Default ASYNC user event.
- */
-#define SDL_ASYNC_RESULT 100
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 /**
  * Task function type.
@@ -19,6 +18,8 @@ typedef int (*async_function_t)(void * /* baton */);
  */
 typedef struct
 {
+	// Custom code for result
+	int message;
 	// Task exit code.
 	int result;
 	// Function to execute inside a thread.
@@ -62,6 +63,10 @@ void Async_Free();
  * parameter.
  * @param baton Additional data asociated with the task.
  */
-void Async_Queue_Work(async_function_t task, void * baton);
+void Async_Queue_Work(async_function_t task, int message, void * baton);
+
+#if defined(__cplusplus)
+}
+#endif
 
 #endif /* SDL_ASYNC_INCLUDED_H_ */
